@@ -8,14 +8,45 @@ class WatermarkApp:
         self.root = root
         self.root.title("Image Watermark App")
 
-        self.image_label = tk.Label(self.root)
-        self.image_label.pack(pady=10)
+        # Create a frame to hold the image label
+        self.image_frame = tk.Frame(self.root)
+        self.image_frame.pack(pady=10)
 
-        self.add_watermark_button = tk.Button(self.root, text="Add Watermark", command=self.add_watermark)
-        self.add_watermark_button.pack(pady=10)
+        # Image label
+        self.image_label = tk.Label(self.image_frame)
+        self.image_label.pack()
 
-        self.save_button = tk.Button(self.root, text="Save Image", command=self.save_image)
-        self.save_button.pack(pady=10)
+        # Title text
+        self.title_label = tk.Label(self.root, text="Image Watermark App", font=("Helvetica", 16, "bold"))
+        self.title_label.pack()
+
+        # Buttons frame
+        self.buttons_frame = tk.Frame(self.root)
+        self.buttons_frame.pack(pady=10)
+
+        # Open Image button with icon
+        self.open_icon = Image.open("open_icon.png")  # Replace with the actual path to your open icon
+        self.open_icon = self.open_icon.resize((30, 30))
+        self.open_icon = ImageTk.PhotoImage(self.open_icon)
+        self.open_button = tk.Button(self.buttons_frame, text="Open Image", command=self.open_image,
+                                     image=self.open_icon, compound=tk.TOP)
+        self.open_button.grid(row=0, column=0, padx=10)
+
+        # Add Watermark button with icon
+        self.add_icon = Image.open("add_icon.png")  # Replace with the actual path to your add icon
+        self.add_icon = self.add_icon.resize((30, 30))
+        self.add_icon = ImageTk.PhotoImage(self.add_icon)
+        self.add_watermark_button = tk.Button(self.buttons_frame, text="Add Watermark", command=self.add_watermark,
+                                              image=self.add_icon, compound=tk.TOP)
+        self.add_watermark_button.grid(row=0, column=1, padx=10)
+
+        # Save Image button with icon
+        self.save_icon = Image.open("save_icon.png")  # Replace with the actual path to your save icon
+        self.save_icon = self.save_icon.resize((30, 30))
+        self.save_icon = ImageTk.PhotoImage(self.save_icon)
+        self.save_button = tk.Button(self.buttons_frame, text="Save Image", command=self.save_image,
+                                     image=self.save_icon, compound=tk.TOP)
+        self.save_button.grid(row=0, column=2, padx=10)
 
         self.image_path = ""
         self.image = None
@@ -71,19 +102,20 @@ class WatermarkApp:
         if self.image:
             save_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
             if save_path:
-                watermarked_image = Image.open(self.image_path)
+                original_image = Image.open(self.image_path).convert("RGBA")
 
-                # Get the original image size
-                original_size = watermarked_image.size
+                # Watermark image
+                watermark_path = "watermark.png"  # Update this path
+                watermark = Image.open(watermark_path).convert("RGBA")
 
-                # Create a new blank image with the same size
-                new_image = Image.new("RGBA", original_size, (0, 0, 0, 0))
+                # Resize watermark to fit the original image
+                watermark = watermark.resize(original_image.size)
 
-                # Paste the watermarked image onto the new image
-                new_image.paste(watermarked_image, (0, 0))
+                # Blend the images
+                watermarked_image = Image.alpha_composite(original_image, watermark)
 
-                # Save the new image as PNG
-                new_image.save(save_path, format="PNG")
+                # Save the watermarked image as PNG
+                watermarked_image.save(save_path, format="PNG")
 
                 # Provide feedback
                 messagebox.showinfo("Image Saved", "The watermarked image has been saved.")
@@ -92,9 +124,6 @@ class WatermarkApp:
 if __name__ == "__main__":
     root = tk.Tk()
     app = WatermarkApp(root)
-
-    open_button = tk.Button(root, text="Open Image", command=app.open_image)
-    open_button.pack(pady=10)
 
     root.mainloop()
 
